@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Sahayak Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        #chat-window::-webkit-scrollbar { width: 6px; }
+        #chat-window::-webkit-scrollbar-track { background: #f1f5f9; }
+        #chat-window::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        #chat-window::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .pulse { animation: pulse-animation 1.5s infinite; }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(29, 78, 216, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0); }
+        }
+        
+        /* Interactive Effects */
+        .chat-bubble { transition: all 0.2s ease-in-out; }
+        .chat-bubble:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        #user-input:focus { letter-spacing: 0.2px; transition: letter-spacing 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
+
+    <div id="login-container" class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-blue-700">College Sahayak</h1>
+            <p class="text-slate-500 mt-2">Welcome! Please enter your details to start.</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label for="name-input" class="block text-sm font-medium text-slate-700">Your Name</label>
+                <input type="text" id="name-input" placeholder="e.g., Rohan Kumar" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+            </div>
+            <div>
+                <label for="lang-select" class="block text-sm font-medium text-slate-700">Preferred Language</label>
+                <select id="lang-select" class="mt-1 block w-full px-4 py-3 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="hn">Hinglish</option>
+                    <option value="ma">मारवाड़ी (Marwari)</option>
+                </select>
+            </div>
+        </div>
+        <button id="start-btn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform active:scale-95">
+            Start Chat
+        </button>
+    </div>
+
+    <div id="chat-container" class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl flex-col h-[90vh] my-5 hidden">
+        <div class="bg-blue-700 text-white p-4 rounded-t-2xl shadow-md flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold">College Sahayak</h1>
+                <p class="text-sm opacity-80">Your 24/7 virtual assistant</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-xs">Text-to-Speech</span>
+                <button id="tts-toggle" class="relative w-12 h-6 bg-blue-500 rounded-full p-1 duration-300">
+                    <div id="tts-indicator" class="w-4 h-4 bg-white rounded-full shadow-md transform -translate-x-0 duration-300"></div>
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-window" class="flex-1 p-6 overflow-y-auto bg-slate-50">
+            </div>
+        
+        <div id="typing-indicator" class="p-6 pt-0 hidden">
+             <div class="flex items-start gap-3">
+                 <div class="bg-blue-600 text-white p-2 rounded-full flex-shrink-0">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="12" width="16" height="8" rx="2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M17 12v-2a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2"/><path d="M9 12v-2a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2"/></svg>
+                 </div>
+                 <div class="bg-blue-100 text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm flex items-center space-x-1">
+                     <span class="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></span>
+                     <span class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></span>
+                     <span class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0.4s;"></span>
+                 </div>
+             </div>
+        </div>
+
+        <div class="p-4 bg-white border-t border-slate-200 rounded-b-2xl">
+            <div class="flex items-center space-x-3">
+                <input type="text" id="user-input" placeholder="Type your message..." class="flex-1 w-full px-4 py-3 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                <button id="mic-btn" class="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                </button>
+                <button id="send-btn" class="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const loginContainer = document.getElementById('login-container');
+        const chatContainer = document.getElementById('chat-container');
+        const nameInput = document.getElementById('name-input');
+        const langSelect = document.getElementById('lang-select');
+        const startBtn = document.getElementById('start-btn');
+        
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const ttsToggle = document.getElementById('tts-toggle');
+        const ttsIndicator = document.getElementById('tts-indicator');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // --- State Variables ---
+        let isTtsEnabled = false;
+        let lastBotResponseData = null; // To store the last response for translation
+        let preferredLanguage = 'en'; // Default language
+        let userName = '';
+
+        // --- Speech Recognition Setup ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-IN';
+            recognition.interimResults = false;
+            recognition.onresult = (event) => {
+                userInput.value = event.results[0][0].transcript;
+                micBtn.classList.remove('pulse', 'bg-red-600');
+                handleUserMessage();
+            };
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                micBtn.classList.remove('pulse', 'bg-red-600');
+            };
+            recognition.onend = () => {
+                micBtn.classList.remove('pulse', 'bg-red-600');
+            };
+        } else {
+            console.log("Speech Recognition not supported.");
+            micBtn.disabled = true;
+            micBtn.style.opacity = '0.5';
+        }
+
+        // --- Multi-lingual Knowledge Base ---
+        const knowledgeBase = {
+            'fee': { en: 'The annual tuition fee is INR 1,50,000. Hostel fees are separate. Would you like a detailed breakdown?', hi: 'वार्षिक ट्यूशन फीस ₹1,50,000 है। हॉस्टल की फीस अलग है। क्या आपको विस्तृत जानकारी चाहिए?', ma: 'सालाना पढ़ाई री फीस ₹1,50,000 है। हॉस्टल री फीस अलग है। कई थाने पूरी जाणकारी चाईजे?', hn: 'Annual tuition fee 1,50,000 INR hai. Hostel fees alag se hain. Aapko detailed breakdown chahiye?' },
+            'timing': { en: 'The college operates from 9:00 AM to 5:00 PM, Monday to Friday.', hi: 'कॉलेज का समय सुबह 9:00 बजे से शाम 5:00 बजे तक, सोमवार से शुक्रवार है।', ma: 'कॉलेज रो टेम सुबेरे 9:00 बजे सूं સાંજે 5:00 बजे तक है, सोमवार सूं शुक्रवार।', hn: 'College 9 AM se 5 PM tak chalta hai, Monday to Friday.' },
+            'last date': { en: 'The last date for application submission is 30th September. Please ensure you apply before the deadline.', hi: 'आवेदन जमा करने की अंतिम तिथि 30 सितंबर है। कृपया समय सीमा से पहले आवेदन करें।', ma: 'फॉर्म भरबा री आखिरी तारीख 30 सितंबर है। मेहरबानी कर\\\'r टेम सूं पेलां फॉर्म भर दीजो।', hn: 'Application submit karne ki last date 30th September hai. Deadline se pehle apply karein.' },
+            'application': { en: 'You can apply online through our official website. The application form is available under the "Admissions" tab.', hi: 'आप हमारी आधिकारिक वेबसाइट के माध्यम से ऑनलाइन आवेदन कर सकते हैं। आवेदन पत्र "प्रवेश" टैब के अंतर्गत उपलब्ध है।', ma: 'आप हमारी वेबसाइट सूं ऑनलाइन फॉर्म भर सको हो। फॉर्म "दाखिला" टैब में मिल जावेला।', hn: 'Aap official website se online apply kar sakte hain. Application form "Admissions" tab mein milega.' },
+            'admission': { en: 'The admission process involves an online application, an entrance test, and a personal interview. Please check the website for key dates.', hi: 'प्रवेश प्रक्रिया में एक ऑनलाइन आवेदन, एक प्रवेश परीक्षा और एक व्यक्तिगत साक्षात्कार शामिल है। महत्वपूर्ण तिथियों के लिए वेबसाइट देखें।', ma: 'दाखिला री प्रक्रिया में ऑनलाइन फॉर्म, एक परीक्षा, और एक इंटरव्यू शामिल है। वेबसाइट पर जरूरी तारीख देख लीजो।', hn: 'Admission process mein online application, entrance test, aur personal interview hota hai. Important dates ke liye website check karein.' },
+            'course': { en: 'We offer B.Tech, M.Tech, MBA, and PhD programs. Which course are you interested in?', hi: 'हम बी.टेक, एम.टेक, एमबीए, और पीएचडी कार्यक्रम प्रदान करते हैं। आप किस कोर्स में रुचि रखते हैं?', ma: 'म्हांरे अठे बी.टेक, एम.टेक, एमबीए, और पीएचडी कोर्स है। आप कुणसा कोर्स में रुचि रखो हो?', hn: 'Hum B.Tech, M.Tech, MBA, aur PhD programs offer karte hain. Aapko kaunse course mein interest hai?' },
+            'hello': { en: 'Hello! How can I assist you today?', hi: 'नमस्ते! मैं आपकी क्या सहायता कर सकता हूँ?', ma: 'खम्मा घणी सा! मैं आपकी काई मदद कर सकूं?', hn: 'Hello! Main aapki kaise madad kar sakta hoon?' },
+            'thank': { en: 'You\'re welcome! Is there anything else I can help you with?', hi: 'आपका स्वागत है! क्या मैं आपकी और कोई मदद कर सकता हूँ?', ma: 'कोई बात नी! और कोई मदद चाईजे काई?', hn: 'You\'re welcome! Aur kuch help chahiye?' },
+            'goodbye': { en: 'Goodbye! Have a great day!', hi: 'अलविदा! आपका दिन शुभ हो!', ma: 'राम राम सा! थारो दिन शुभ हो!', hn: 'Goodbye! Aapka din shubh ho!' },
+            'campus': { en: 'Our campus is located in the heart of the city with state-of-the-art facilities including modern classrooms, labs, and a library.', hi: 'हमारा कैंपस शहर के केंद्र में स्थित है, जिसमें आधुनिक कक्षाएं, लैब और एक पुस्तकालय जैसी अत्याधुनिक सुविधाएं हैं।', ma: 'म्हारो कैंपस शहर री बीच में है, जिथे आधुनिक क्लासरूम, लैब्स, और एक लाइब्रेरी जैसी सुविधाएं है।', hn: 'Hamare campus shehar ke beech mein sthit hai jahan modern classrooms, labs, aur library jaise facilities hain.' },
+            'hostel': { en: 'We provide comfortable hostel accommodations with modern amenities, 24/7 security, and a vibrant community for students to live and learn together.', hi: 'हम आधुनिक सुविधाओं, 24/7 सुरक्षा और एक जीवंत समुदाय के साथ आरामदायक हॉस्टल आवास प्रदान करते हैं ताकि छात्र साथ में रह सकें और सीख सकें।', ma: 'हम आधुनिक सुविधाएं, 24/7 सुरक्षा, और एक जीवंत समुदाय सहित आरामदायक हॉस्टल आवास प्रदान करां है, जिण सूं छात्रां एक साथ रह सका है और पढ़ सका है।', hn: 'Hum modern amenities, 24/7 security, aur ek vibrant community ke saath comfortable hostel accommodations provide karte hain jahan students saath mein reh sakte hain aur seekh sakte hain.' },
+            'placement': { en: 'Our placement cell works closely with leading companies to provide students with internship and job opportunities. We have a strong track record of successful placements.', hi: 'हमारा प्लेसमेंट सेल प्रमुख कंपनियों के साथ मिलकर छात्रों को इंटर्नशिप और नौकरी के अवसर प्रदान करता है। हमारे पास सफल प्लेसमेंट का एक मजबूत ट्रैक रिकॉर्ड है।', ma: 'म्हारो प्लेसमेंट सेल प्रमुख कंपनियां सूं मिलके छात्रां ने इंटर्नशिप और नौकरी री अवसर देवे है। हमारे पास सफल प्लेसमेंट रो एक मजबूत रिकॉर्ड है।', hn: 'Hamare placement cell leading companies ke saath milkar students ko internship aur job opportunities provide karta hai. Hamare paas successful placements ka ek strong track record hai.' },
+            'departments': { en: 'We have various departments including Computer Science, Mechanical Engineering, Electrical Engineering, Civil Engineering, Business Administration, and Humanities.', hi: 'हमारे पास कंप्यूटर विज्ञान, यांत्रिक इंजीनियरिंग, विद्युत इंजीनियरिंग, सिविल इंजीनियरिंग, व्यवसाय प्रशासन और मानविकी सहित विभिन्न विभाग हैं।', ma: 'म्हारे पास कंप्यूटर साइंस, मैकेनिकल इंजीनियरिंग, इलेक्ट्रिकल इंजीनियरिंग, सिविल इंजीनियरिंग, बिजनेस एडमिनिस्ट्रेशन, और ह्यूमैनिटीज जैसे कई विभाग है।', hn: 'Hamare paas Computer Science, Mechanical Engineering, Electrical Engineering, Civil Engineering, Business Administration, aur Humanities jaise various departments hain.' },
+            'security': { en: 'The campus is equipped with 24/7 security personnel, CCTV surveillance, and secure access points to ensure the safety of all students and staff.', hi: 'कैंपस में 24/7 सुरक्षा कर्मी, सीसीटीवी निगरानी और सुरक्षित प्रवेश बिंदु हैं ताकि सभी छात्रों और कर्मचारियों की सुरक्षा सुनिश्चित की जा सके।', ma: 'कैंपस में 24/7 सुरक्षा कर्मचारी, CCTV निगरानी, और सुरक्षित प्रवेश बिंदु है ताकि सभी छात्रां और स्टाफ री सुरक्षा सुनिश्चित करी जा सके।', hn: 'Campus mein 24/7 security personnel, CCTV surveillance, aur secure access points hain taaki sabhi students aur staff ki suraksha sunishchit ki ja sake.' }
+           
+        };
+
+        const defaultResponses = {
+            en: "I'm sorry, I don't have information about that. You can visit our website for more details.",
+            hi: "मुझे खेद है, मेरे पास इस बारे में जानकारी नहीं है। अधिक जानकारी के लिए आप हमारी वेबसाइट देख सकते हैं।",
+            ma: "माफ़ करजो, म्हारे पास इण बारे में कोई जानकारी कोनी। और जानकारी वास्ते आप हमारी वेबसाइट देख सको हो।",
+            hn: "Sorry, mere paas iske baare mein information nahi hai. Aap zyada details ke liye website visit kar sakte hain."
+
+        };
+
+        // --- Event Listeners ---
+        startBtn.addEventListener('click', () => {
+            userName = nameInput.value.trim();
+            preferredLanguage = langSelect.value;
+            
+            if (!userName) {
+                userName = "Guest";
+            }
+
+            loginContainer.classList.add('hidden');
+            chatContainer.classList.remove('hidden');
+            chatContainer.classList.add('flex'); // Make it a flex container as originally designed
+
+            // Add personalized initial greeting
+            const greetings = {
+                en: `Hello ${userName}! How can I assist you today? You can also ask me to translate, for example, say 'translate to hindi'.`,
+                hi: `नमस्ते ${userName}! मैं आपकी क्या सहायता कर सकता हूँ? आप मुझसे अनुवाद करने के लिए भी कह सकते हैं, उदाहरण के लिए, 'english में अनुवाद करें' कहें।`,
+                ma: `खम्मा घणी सा ${userName}! मैं आपकी काई मदद कर सकूं? आप अनुवाद करने के लिए भी कह सकते हैं।`,
+                hn: `Hello ${userName}! Main aapki kaise madad kar sakta hoon? Aap translate karne ke liye bhi bol sakte hain, jaise 'translate to marwari'.`
+            };
+            const initialMessage = greetings[preferredLanguage] || greetings['en'];
+            addMessageToChat(initialMessage, 'bot');
+        });
+
+        sendBtn.addEventListener('click', handleUserMessage);
+        userInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') handleUserMessage();
+        });
+        if(micBtn) micBtn.addEventListener('click', () => {
+            if (recognition) {
+                micBtn.classList.add('pulse', 'bg-red-600');
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error("Recognition already started.", error);
+                    micBtn.classList.remove('pulse', 'bg-red-600');
+                }
+            }
+        });
+        ttsToggle.addEventListener('click', () => {
+            isTtsEnabled = !isTtsEnabled;
+            if (isTtsEnabled) {
+                ttsIndicator.style.transform = 'translateX(24px)';
+                ttsToggle.classList.remove('bg-blue-500');
+                ttsToggle.classList.add('bg-green-500');
+                speak("Text to speech enabled.");
+            } else {
+                ttsIndicator.style.transform = 'translateX(0px)';
+                ttsToggle.classList.add('bg-blue-500');
+                ttsToggle.classList.remove('bg-green-500');
+                speechSynthesis.cancel();
+            }
+        });
+        
+        // --- Functions ---
+        function handleUserMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            addMessageToChat(message, 'user');
+            userInput.value = '';
+            
+            typingIndicator.classList.remove('hidden');
+            setTimeout(() => {
+                const botResponse = getBotResponse(message);
+                typingIndicator.classList.add('hidden');
+                addMessageToChat(botResponse, 'bot');
+                if (isTtsEnabled) speak(botResponse);
+            }, 1000 + Math.random() * 500);
+        }
+
+        function addMessageToChat(message, sender) {
+            const messageElement = document.createElement('div');
+            const sanitizedMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            if (sender === 'user') {
+                messageElement.innerHTML = `<div class="flex items-start gap-3 justify-end mb-4"><div class="bg-blue-600 text-white p-3 rounded-lg rounded-br-none shadow-sm max-w-md chat-bubble"><p>${sanitizedMessage}</p></div><div class="bg-slate-200 text-slate-600 p-2 rounded-full flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div></div>`;
+            } else {
+                messageElement.innerHTML = `<div class="flex items-start gap-3 mb-4"><div class="bg-blue-600 text-white p-2 rounded-full flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="12" width="16" height="8" rx="2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M17 12v-2a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v2"/><path d="M9 12v-2a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v2"/></svg></div><div class="bg-blue-100 text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm max-w-md chat-bubble"><p>${sanitizedMessage}</p></div></div>`;
+            }
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function getBotResponse(message) {
+            const lowerCaseMessage = message.toLowerCase();
+
+            // --- 1. Check for Translation Commands ---
+            const translateKeywords = { 'hindi': 'hi', 'english': 'en', 'marwari': 'ma', 'hinglish': 'hn' };
+            for (const lang in translateKeywords) {
+                if (lowerCaseMessage.includes(`translate to ${lang}`) || lowerCaseMessage.includes(`${lang} me`) || lowerCaseMessage.includes(`${lang} mein`)) {
+                    if (lastBotResponseData) {
+                        return lastBotResponseData[translateKeywords[lang]] || "I don't have a translation for that in " + lang + ".";
+                    }
+                    return "Please ask a question first, then I can translate the answer for you.";
+                }
+            }
+
+            // --- 2. Check for General Keywords ---
+            const keywords = {
+                ...knowledgeBase,
+                'fees': knowledgeBase['fee'], 'time': knowledgeBase['timing'], 'deadline': knowledgeBase['last date'],
+                'courses': knowledgeBase['course'], 'hi': knowledgeBase['hello'], 'hey': knowledgeBase['hello'],
+                'namaste': knowledgeBase['hello'], 'thank you': knowledgeBase['thank'], 'bye': knowledgeBase['goodbye']
+            };
+
+            let bestMatch = null;
+            let highestScore = 0;
+            for (const keyword in keywords) {
+                if (lowerCaseMessage.includes(keyword) && keyword.length > highestScore) {
+                    highestScore = keyword.length;
+                    bestMatch = keywords[keyword];
+                }
+            }
+
+            if (bestMatch) {
+                lastBotResponseData = bestMatch; // Store the full object for translation
+                // **MODIFIED**: Use the preferred language, with English as a fallback.
+                return bestMatch[preferredLanguage] || bestMatch.en; 
+            }
+
+            // --- 3. Default Response ---
+            lastBotResponseData = null; // Clear previous response if no match
+            return defaultResponses[preferredLanguage] || defaultResponses['en'];
+        }
+        
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                const voices = speechSynthesis.getVoices();
+                utterance.voice = voices.find(voice => voice.lang.includes('hi')) || voices.find(voice => voice.lang.includes('en'));
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+        }
+    </script>
+</body>
+</html>

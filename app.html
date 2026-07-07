@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Assistant</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 400px; height: 600px; background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        #chat-header { background-color: #005a9c; color: white; padding: 16px; border-top-left-radius: 12px; border-top-right-radius: 12px; text-align: center; }
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 16px; }
+        #chat-input-container { display: flex; padding: 16px; border-top: 1px solid #eee; }
+        #chat-input { flex-grow: 1; border: 1px solid #ccc; border-radius: 18px; padding: 10px 16px; font-size: 16px; }
+        #send-button { background-color: #005a9c; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; cursor: pointer; font-size: 20px; }
+        .message { margin-bottom: 12px; padding: 8px 12px; border-radius: 18px; max-width: 80%; }
+        .user-msg { background-color: #e1f5fe; align-self: flex-end; margin-left: auto; }
+        .bot-msg { background-color: #f1f1f1; align-self: flex-start; }
+        .message-wrapper { display: flex; flex-direction: column; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header"><h2>CampusBot</h2></div>
+        <div id="chat-window"></div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Ask about fees, scholarships...">
+            <button id="send-button" onclick="sendMessage()">&#9658;</button>
+        </div>
+    </div>
+
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatInput = document.getElementById('chat-input');
+
+        function displayMessage(text, sender) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'message-wrapper';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-msg`;
+            messageDiv.textContent = text;
+            
+            messageWrapper.appendChild(messageDiv);
+            chatWindow.appendChild(messageWrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            displayMessage(message, 'user');
+            chatInput.value = '';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayMessage(data.reply, 'bot');
+            } catch (error) {
+                console.error("Fetch error:", error);
+                displayMessage("Error connecting to the chatbot server.", 'bot');
+            }
+        }
+        
+        chatInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initial bot message
+        displayMessage("Hello! I'm CampusBot. How can I assist you today?", 'bot');
+    </script>
+</body>
+</html>
